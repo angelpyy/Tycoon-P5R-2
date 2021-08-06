@@ -203,7 +203,7 @@ void Tycoon::enter_switch() {
         case 1:
             if (play_cards()) {
                 last_player = current_player;
-                current_player = (current_player + 1) % 4;
+                // current_player = (current_player + 1) % 4;
                 selection = 0;
                 break;
             }
@@ -222,7 +222,7 @@ void Tycoon::enter_switch() {
             cout << endl;
             break;
         case 0:
-            current_player = (current_player + 1) % 4;
+            // current_player = (current_player + 1) % 4;
             break;
         case -1:
             exit(0);
@@ -253,13 +253,17 @@ bool Tycoon::play_cards() {
     int play_idx[4] {-1, -1, -1, -1};
     
     if (pile_cards.size() == 0) {
-        cout << endl << "how many cards would you like to play?? ? ?\n";
         while (true) {
+            cout << "enter # of cards you'd like to play\n";
             cin >> play_size;
-            if (play_size < 5 && play_size > 0) { break; }
-            cout << "Invalid amount of cards selected: try again\n";
+            
+            if ( ((play_size < 5 && play_size > 0) && (play_size <= players[current_player].num_cards())) || play_size == -1) {
+                if (play_size == -1) { return false; }
+                break;
+            }
+            cout << "Invalid amount of cards selected: try again (ENTER -1 IF ERROR)\n";
         }
-        
+
         cout << endl << "enter card number you'd like to play\n";
         cout << "ex -- enter 3 for ";
         players[current_player].show_card(2);
@@ -267,7 +271,13 @@ bool Tycoon::play_cards() {
         
         for (int i = 0; i < play_size; i++) {
             cout << "enter number of " << "card " << i + 1 << endl;
-            cin >> play_idx[i];
+            while (true) {
+                cin >> play_idx[i];
+                if(play_idx[i] <= players[current_player].num_cards()) {
+                    break;
+                }
+            cout << "invalid index try again\n";
+            }
         }
         
         for (int j = 0; j < play_size; j++) {
@@ -280,11 +290,16 @@ bool Tycoon::play_cards() {
             
             if (pile_cards[0].get_value() != temp.get_value()) {
                 cout << "INVALID CARD SELECTIONS STOP CHEATING OR LEAENR THE GAMGEGAMEGM!!!M!1!!!\n";
+                pile_cards.clear();
                 return false;
             }
         }
     }
     else {
+        if (players[current_player].num_cards() < pile_cards.size()) {
+            cout << "not enough cards to play so passsss\n";
+        }
+        
         cout << "you must play at least " << pile_cards.size() << " cards" << endl;
         
         for (int i = 0; i < pile_cards.size(); i++) {
@@ -293,18 +308,26 @@ bool Tycoon::play_cards() {
         }
         
         // i need to figure out how to verify that all cards that are played are valid (share the same value)
+        // god this is soooooooo bad, should work???? ?? ? 
+        vector<Card> verification_it_hurts_so_much;
+        for (int i = 0; i < pile_cards.size(); i++) {
+            verification_it_hurts_so_much.push_back(players[current_player].card_at_idx(play_idx[i] - 1));
+            
+            if (i > 0) {
+                if(verification_it_hurts_so_much[i-1].get_value() != verification_it_hurts_so_much[i].get_value()) {
+                    return false;
+                }
+            }
+        }
         
         for (int i = 0; i < pile_cards.size(); i++) {
             // Card temp = players[current_player].remove_card(play_idx[i] - 1);
-            Card temp = players[current_player].card_at_idx(play_idx[i] - 1);
-            int past_val = pile_cards[0].get_value();
-            
-            if (past_val >= temp.get_value()) {
+            if (pile_cards[i].get_value() >= verification_it_hurts_so_much[i].get_value()) {
                 cout << "INVALID CARD SELECTIONS STOP CHEATING OR LEAENR THE GAMGEGAMEGM!!!M!1!!!\n";
                 return false;
             }
             
-            pile_cards[i] = temp;
+            pile_cards[i] = verification_it_hurts_so_much[i];
         }
         
     }
@@ -314,4 +337,8 @@ bool Tycoon::play_cards() {
     }
     
     return true;
+}
+
+Player Tycoon::cur_player() {
+    return players[current_player];
 }

@@ -70,6 +70,7 @@ public:
     bool cont_turn();
     void clear_pile();
     bool play_cards();
+    Player cur_player();
 };
 
 #endif /* Tycoon_hpp */
